@@ -1,0 +1,124 @@
+<!DOCTYPE html><html lang="zh"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta charset="UTF-8">
+  <title>全球剖腹产术后感染率热图</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #fafafa;
+      margin: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .map-container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+  </style>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script></head>
+<body>
+  <h1>全球剖腹产术后感染率地域分布热图</h1>
+  <div class="map-container">
+    <canvas id="infectionMap"></canvas>
+  </div>
+
+  <script>
+    async function drawMap() {
+      // 加载世界地图
+      const world = await fetch("https://cdn.jsdelivr.net/npm/world-atlas/countries-110m.json")
+        .then(r => r.json());
+
+      const countries = ChartGeo.topojson.feature(world, world.objects.countries).features;
+
+      // 用国家“英文名称”作为 key
+      const infectionData = {
+        "United States of America": 5,
+        "Canada": 8,
+        "Mexico": 15,
+        "Brazil": 15,
+        "Argentina": 12,
+        "Russia": 10,
+        "China": 12,
+        "India": 15,
+        "Australia": 8,
+        "South Africa": 20,
+        "Nigeria": 20,
+        "Egypt": 15,
+        "France": 8,
+        "Germany": 8,
+        "United Kingdom": 8
+      };
+
+      const ctx = document.getElementById("infectionMap").getContext("2d");
+      new Chart(ctx, {
+        type: "choropleth",
+        data: {
+          labels: countries.map(d => d.properties.name),
+          datasets: [{
+            label: "剖腹产术后感染率",
+            data: countries.map(feature => {
+              const name = feature.properties.name;
+              return {
+                feature: feature,
+                value: infectionData[name] || null
+              };
+            })
+          }]
+        },
+        options: {
+          showOutline: true,
+          showGraticule: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: "bottom"
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  if (context.raw.value) {
+                    return `${context.raw.feature.properties.name}: ${context.raw.value}%`;
+                  } else {
+                    return `${context.raw.feature.properties.name}: 无数据`;
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            projection: {
+              axis: "x",
+              projection: "equalEarth"
+            },
+            color: {
+              axis: "y",
+              interpolate: "YlOrRd",
+              title: {
+                text: "感染率 (%)",
+                display: true
+              },
+              min: 0,
+              max: 25
+            }
+          }
+        }
+      });
+    }
+
+    drawMap();
+  </script>
+
+
+</body></html>
